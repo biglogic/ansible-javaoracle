@@ -1,0 +1,36 @@
+---
+  - name: add lines
+    lineinfile: 
+      dest: /home/vagrant/.bashrc
+      line: '{{ item }}'
+    with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+  
+  - name: source bashrc
+    action: shell source /home/vagrant/.bashrc
+        
+  - name: Download
+    get_url: 
+         url: "{{ item.value.download }}"
+         headers: "{{ item.value.args }}"
+         force: no
+    with_dict: "{{ downloads }}"
+
+  - name: install 
+    action: shell "{{ item.value.install }}"
+    with_dict: "{{ downloads }}"
+
+  - name: Extract archive
+    action: shell "{{ item.value.unpackwith }}"
+    with_dict: " {{ downloads }}"
+
+ 
+
+     
+    
+
+              
+ 
+
