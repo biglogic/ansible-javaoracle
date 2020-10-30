@@ -4,5 +4,5 @@ java:
       args: "Cookie: oraclelicense=accept-securebackup-cookie"
 
 maven:
-   maven3.6:
+   maven3:
       url: http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz

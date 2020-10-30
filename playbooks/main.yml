@@ -39,11 +39,10 @@
   
       - name: Download java8
         get_url:
-          url: "{{ item.value.url }}"
-          headers: "{{ item.value.args }}"
+          url: "{{ java.java8.url.value }}"
+          headers: "{{ java.java8.args.value }}"
           force: yes
           dest: /tmp
-        with_dict: "{{ java }}"
         when: java_result is failed
   
       - name: Install package java8
@@ -54,10 +53,9 @@
   
       - name: Download Maven
         get_url:
-          url: "{{ item.value.url }}"
+          url: "{{ maven.maven3.url.value }}"
           force: yes
           dest: /tmp
-        with_dict: "{{ maven }}"
   
       - name: Unarchive Maven
         unarchive:
