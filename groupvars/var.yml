@@ -1,11 +1,6 @@
-downloads:
-   java8:
-      download: http://download.oracle.com/otn-pub/java/jdk/8u141-b15/336fa29ff2bb4ef291e347e091f7f4a7/jdk-8u141-linux-x64.rpm
+java8:
+   url: http://download.oracle.com/otn-pub/java/jdk/8u141-b15/336fa29ff2bb4ef291e347e091f7f4a7/jdk-8u141-linux-x64.rpm
+   args: "Cookie: oraclelicense=accept-securebackup-cookie"
 
-      args: "Cookie: oraclelicense=accept-securebackup-cookie"
-      install:  yum install -y jdk-8u141-linux-x64.rpm
-      priority: 1
-   maven:
-      downloadmaven: http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz     
-      unpackwith: tar -xvz apache-maven-3.6.3-bin.tar.gz
-      priority: 2
+maven:
+   url: http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
