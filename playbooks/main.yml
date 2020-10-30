@@ -6,23 +6,23 @@
       - ../groupvars/var.yml
   
     tasks:
-      - name: Add proxy to ec2-user
-        lineinfile:
-          dest: /home/ubuntu/.bashrc
-          line: '{{ item }}'
-        with_items:
-                - 'export http_proxy="http://172.18.10.246:80"'
-                - 'export https_proxy="http://172.18.10.246:80"'
-                - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+      # - name: Add proxy to ec2-user
+      #   lineinfile:
+      #     dest: /home/ubuntu/.bashrc
+      #     line: '{{ item }}'
+      #   with_items:
+      #           - 'export http_proxy="http://172.18.10.246:80"'
+      #           - 'export https_proxy="http://172.18.10.246:80"'
+      #           - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
   
-      - name: Add proxy to environment
-        lineinfile:
-          dest: /etc/environment
-          line: '{{ item }}'
-        with_items:
-          - 'export http_proxy="http://172.18.10.246:80"'
-          - 'export https_proxy="http://172.18.10.246:80"'
-          - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+      # - name: Add proxy to environment
+      #   lineinfile:
+      #     dest: /etc/environment
+      #     line: '{{ item }}'
+      #   with_items:
+      #     - 'export http_proxy="http://172.18.10.246:80"'
+      #     - 'export https_proxy="http://172.18.10.246:80"'
+      #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
   
       - name: Check if java is installed
         command: java -version
