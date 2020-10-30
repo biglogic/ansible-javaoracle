@@ -26,9 +26,9 @@
         - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
 
     - name: Check if java is installed
-        command: java -version
-        register: java_result
-        ignore_errors: True
+      command: java -version
+      register: java_result
+      ignore_errors: True
 
     - debug:
       msg: "Failed - Java is not installed"
