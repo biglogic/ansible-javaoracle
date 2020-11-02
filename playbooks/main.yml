@@ -1,7 +1,8 @@
 ---
-  - hosts: localhost
-    connection: local 
-    become: yes 
+  - hosts: all
+    user : vagrant 
+    become: yes
+    become_user: root
     vars_files:
       - ../groupvars/var.yml
   
@@ -37,58 +38,58 @@
           msg: "Success - Java is installed"
         when:  java_result is success
   
-      - name: Download java8
-        get_url:
-          url: "{{ item.value.url }}"
-          headers: "{{ item.value.args }}"
-          force: yes
-          dest: /tmp
-        with_dict: "{{ java }}"  
-        when: java_result is failed
+        #  - name: Download java8
+        # get_url:
+        #  url: "{{ item.value.url }}"
+        #  headers: "{{ item.value.args }}"
+        #  force: yes
+        #  dest: /tmp
+        # with_dict: "{{ java }}"  
+        #when: java_result is failed
   
-      - name: Install package java8
-        yum:
-          name: /tmp/jdk-8u141-linux-x64.rpm
-          state: present
-        with_dict: "{{ java }}"  
-        when: java_result is failed
+        #- name: Install package java8
+        # yum:
+        # name: /tmp/jdk-8u141-linux-x64.rpm
+        # state: present
+        # with_dict: "{{ java }}"  
+        #when: java_result is failed
      
-      - name: Check if maven is installed
-        command: mvn -v
-        register: maven_result
-        ignore_errors: True
+        # - name: Check if maven is installed
+        # command: mvn -v
+        # register: maven_result
+        # ignore_errors: True
   
-      - debug:
-          msg: "Failed - maven is not installed"
-        when: maven_result is failed
+        #- debug:
+        # msg: "Failed - maven is not installed"
+        # when: maven_result is failed
       
-      - debug:
-          msg: "Success - Java is installed"
-        when:  maven_result is success
+        # - debug:
+        # msg: "Success - Java is installed"
+        # when:  maven_result is success
   
 
-      - name: Download Maven
-        get_url:
-          url: "{{ item.value.url }}"
-          force: yes
-          dest: /tmp
-        with_dict: "{{ maven }}" 
-        when: maven_result is failed
+        # - name: Download Maven
+        # get_url:
+        # url: "{{ item.value.url }}"
+        # force: yes
+        # dest: /tmp
+        # with_dict: "{{ maven }}" 
+        # when: maven_result is failed
   
-      - name: Unarchive Maven
-        unarchive:
-          src: /tmp/apache-maven-3.6.3-bin.tar.gz
-          dest: /opt/
-          mode: 0755
-          owner: root
-          group: root
-        when: maven_result is failed
+        # - name: Unarchive Maven
+        #  unarchive:
+        #  src: /tmp/apache-maven-3.6.3-bin.tar.gz
+        #  dest: /opt/
+        #  mode: 0755
+        #  owner: root
+        #  group: root
+        # when: maven_result is failed
 
-      - name: install maven package
-        apt:
-           name: /opt/apache-maven-3.6.3  
-           state: present 
-        when: maven_result is failed 
+        # - name: install maven package
+        # apt:
+        #  name: /opt/apache-maven-3.6.3  
+        #  state: present 
+        # when: maven_result is failed 
       
       - name: System-wide environment variables.
         lineinfile:
@@ -109,7 +110,8 @@
         command: mv /opt/apache-maven-3.6.3   /usr/local/apache-maven
         when: stat_result.stat.exists == True                    
       
-      - name: For GIT installation
+      - name: For GIT  and docker installation
         yum:
-           name:     
+             name: docker
+                 
          
