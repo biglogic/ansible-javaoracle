@@ -1,7 +1,7 @@
 ---
   - hosts: localhost
-    connection: local
-    become: yes
+    connection: local 
+    become: yes 
     vars_files:
       - ../groupvars/var.yml
   
@@ -39,23 +39,41 @@
   
       - name: Download java8
         get_url:
-          url: "{{ java.java8.url.value }}"
-          headers: "{{ java.java8.args.value }}"
+          url: "{{ item.value.url }}"
+          headers: "{{ item.value.args }}"
           force: yes
           dest: /tmp
+        with_dict: "{{ java }}"  
         when: java_result is failed
   
       - name: Install package java8
         yum:
           name: /tmp/jdk-8u141-linux-x64.rpm
           state: present
+        with_dict: "{{ java }}"  
         when: java_result is failed
+     
+      - name: Check if maven is installed
+        command: mvn -v
+        register: maven_result
+        ignore_errors: True
   
+      - debug:
+          msg: "Failed - maven is not installed"
+        when: maven_result is failed
+      
+      - debug:
+          msg: "Success - Java is installed"
+        when:  maven_result is success
+  
+
       - name: Download Maven
         get_url:
-          url: "{{ maven.maven3.url.value }}"
+          url: "{{ item.value.url }}"
           force: yes
           dest: /tmp
+        with_dict: "{{ maven }}" 
+        when: maven_result is failed
   
       - name: Unarchive Maven
         unarchive:
@@ -64,4 +82,34 @@
           mode: 0755
           owner: root
           group: root
-  
+        when: maven_result is failed
+
+      - name: install maven package
+        apt:
+           name: /opt/apache-maven-3.6.3  
+           state: present 
+        when: maven_result is failed 
+      
+      - name: System-wide environment variables.
+        lineinfile:
+          dest: /etc/environment
+          line: '{{ item }}'
+        with_items:
+              - 'export http_proxy="http://172.18.10.246:80"'
+              - 'export https_proxy="http://172.18.10.246:80"'
+              - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+       
+      - name: checking if the file 1 exists
+        stat:      
+           path: /opt/apache-maven-3.6.3
+        register: stat_result
+
+       
+      - name: moving file 1
+        command: mv /opt/apache-maven-3.6.3   /usr/local/apache-maven
+        when: stat_result.stat.exists == True                    
+      
+      - name: For GIT installation
+        yum:
+           name:     
+         
