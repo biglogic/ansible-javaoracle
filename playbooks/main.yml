@@ -7,23 +7,23 @@
         - ../groupvars/var.yml
     
       tasks:
-        # - name: Add proxy to ec2-user
-        #   lineinfile:
-        #      dest: /home/ubuntu/.bashrc
+       # - name: Add proxy to ec2-user
+        #  lineinfile:
+        #      dest: /home/vagrant/.bashrc
         #      line: '{{ item }}'
-        #   with_items:
-        #            - 'export http_proxy="http://172.18.10.246:80"'
-        #            - 'export https_proxy="http://172.18.10.246:80"'
-        #            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+         # with_items:
+          #          - 'export http_proxy="http://172.18.10.246:80"'
+           #         - 'export https_proxy="http://172.18.10.246:80"'
+            #        - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
     
         # - name: Add proxy to environment
         #   lineinfile:
-        #      dest: /etc/environment
-        #      line: '{{ item }}'
+        #       dest: /etc/environment
+        #       line: '{{ item }}'
         #   with_items:
-        #      - 'export http_proxy="http://172.18.10.246:80"'
-        #      - 'export https_proxy="http://172.18.10.246:80"'
-        #      - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+        #       - 'export http_proxy="http://172.18.10.246:80"'
+        #       - 'export https_proxy="http://172.18.10.246:80"'
+        #       - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
     
         # - name: Check if java is installed
         #   command: java -version
@@ -31,74 +31,74 @@
         #   ignore_errors: True
     
         # - debug:
-        #     msg: "Failed - Java is not installed"
+        #      msg: "Failed - Java is not installed"
         #   when: java_result is failed
     
         # - debug:
-        #     msg: "Success - Java is installed"
+        #      msg: "Success - Java is installed"
         #   when:  java_result is success
     
         # - name: Download java8
         #   get_url:
-        #     url: "{{ item.value.url }}"
-        #     headers: "{{ item.value.args }}"
-        #     force: yes
-        #     dest: /tmp
+        #      url: "{{ item.value.url }}"
+        #      headers: "{{ item.value.args }}"
+        #      force: yes
+        #      dest: /tmp
         #   with_dict: "{{ java }}"  
         #   when: java_result is failed
     
-          #- name: Install package java8
-          # yum:
-          # name: /tmp/jdk-8u141-linux-x64.rpm
-          # state: present
-          # with_dict: "{{ java }}"  
-          #when: java_result is failed
+        # - name: Install package java8
+        #   yum:
+        #    name: /tmp/jdk-8u141-linux-x64.rpm
+        #    state: present
+        #   with_dict: "{{ java }}"  
+        #   when: java_result is failed
        
-          # - name: Check if maven is installed
-          # command: mvn -v
-          # register: maven_result
-          # ignore_errors: True
+        # - name: Check if maven is installed
+        #   command: mvn -v
+        #   register: maven_result
+        #   ignore_errors: True
     
-          #- debug:
-          # msg: "Failed - maven is not installed"
-          # when: maven_result is failed
+        # - debug:
+        #     msg: "Failed - maven is not installed"
+        #   when: maven_result is failed
         
-          # - debug:
-          # msg: "Success - Java is installed"
-          # when:  maven_result is success
+        # - debug:
+        #     msg: "Success - Java is installed"
+        #   when:  maven_result is success
     
   
-          # - name: Download Maven
-          # get_url:
-          # url: "{{ item.value.url }}"
-          # force: yes
-          # dest: /tmp
-          # with_dict: "{{ maven }}" 
-          # when: maven_result is failed
+        # - name: Download Maven
+        #   get_url:
+        #     url: "{{ item.value.url }}"
+        #     force: yes
+        #     dest: /tmp
+        #   with_dict: "{{ maven }}" 
+        #   when: maven_result is failed
     
-          # - name: Unarchive Maven
-          #  unarchive:
-          #  src: /tmp/apache-maven-3.6.3-bin.tar.gz
-          #  dest: /opt/
-          #  mode: 0755
-          #  owner: root
-          #  group: root
-          # when: maven_result is failed
+        # - name: Unarchive Maven
+        #   unarchive:
+        #     src: /tmp/apache-maven-3.6.3-bin.tar.gz
+        #     dest: /opt/
+        #     mode: 0755
+        #     owner: root
+        #     group: root
+        #   when: maven_result is failed
   
-          # - name: install maven package
-          # apt:
-          #  name: /opt/apache-maven-3.6.3  
-          #  state: present 
-          # when: maven_result is failed 
+        # - name: install maven package
+        #   yum:
+        #      name: /opt/apache-maven-3.6.3  
+        #      state: present 
+        #   when: maven_result is failed 
         
-          # - name: System-wide environment variables.
-          # lineinfile:
-          #  dest: /etc/environment
-          #  line: '{{ item }}'
-          #with_items:
-          #     - 'export http_proxy="http://172.18.10.246:80"'
-          #     - 'export https_proxy="http://172.18.10.246:80"'
-          #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+       # - name: System-wide environment variables.
+        #    lineinfile:
+        #      dest: /etc/environment
+        #      line: '{{ item }}'
+        #   with_items:
+        #        - 'export http_proxy="http://172.18.10.246:80"'
+        #        - 'export https_proxy="http://172.18.10.246:80"'
+        #        - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
          
         - name: checking if the file 1 exists
           stat:      
@@ -197,36 +197,9 @@
         - name: Add Docker repo
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
-            dest: /etc/yum.repos.d/docer-ce.repo
-               
+            dest: /etc/yum.repos.d/docer-ce.repo         
   
-        - name: Enable Docker Edge repo
-          ini_file:
-             dest: /etc/yum.repos.d/docer-ce.repo
-             section: 'docker-ce-edge'
-             option: enabled
-             value: 0
-         
-        - name: Enable Docker Test repo
-          ini_file:
-             dest: /etc/yum.repos.d/docer-ce.repo
-             section: 'docker-ce-test'
-             option: enabled
-         
-         
-  
-        - name: Install Docker
-          package:
-             name: docker-ce
-             state: latest
-         
-  
-        - name: Start Docker service
-          service:
-             name: docker
-             state: started
-             enabled: "yes"
-         
+           
         - name: Add user vagrant to docker group
           user:
              name: "vagrant"
@@ -257,12 +230,63 @@
           pip:
             name: virualenv     
   
-        - name: install virtual environment
-          command:
-            cmd: :/home/vagrant/python3 virtualenv  /usr/bin/python3 -p python3
+        # - name: install virtual environment
+        #   command:
+        #     cmd: :/home/vagrant/python3 virtualenv  /usr/bin/python3 -p python3
               
         
-        - name: Activate the virtual env created using the below command
+        - name: NODEJS and NPM Installation
+          get_url:
+               url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
+               dest: /home/centos/install.sh 
+        
+        - name: run shell script 
           command:
-            cmd : source /home/vagrant/python3/python3env/bin/activatesource     
+               cmd: bash /home/centos/install.sh
+        
+        - name: Reboot server in order for changes to take place
+          command: "sleep 1 && reboot"
+        
+        - name: nvm install 12.7.0
+          shell: "source /root/.nvm/nvm.sh && nvm install 12.7.0" 
+          args:
+            executable: /bin/bash
+
+        - name: check version
+          command: "npm -v && node -v "
+          register: version_message
+          ignore_errors: yes
+        
+        - debug:
+            msg: "{{version_message}}"  
+        
+        - name: PSQL Installation
+          yum:
+            name: postgresql-server
+
+
+        - name: Java 11 Installation
+          shell: curl -s "https://get.sdkman.io" | bash
+          args: 
+             warn: no
+        
+        - name : Install the java 11.0.2-open
+          shell: sdk java 11.0.2-open && sdk use java 11.0.2-open
+
+        - name: SBT Installation
+          shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
+          args:
+            warn: no 
+
+        - name:  Install Sbt
+          yum:
+            name: sbt 
+            
+
   
+             
+         
+         
+          
+
+   
