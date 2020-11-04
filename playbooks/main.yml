@@ -100,10 +100,10 @@
         #        - 'export https_proxy="http://172.18.10.246:80"'
         #        - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
          
-        - name: checking if the file 1 exists
-          stat:      
-             path: /opt/apache-maven-3.6.3
-          register: stat_result
+        # name: checking if the file 1 exists
+        #   stat:      
+        #      path: /opt/apache-maven-3.6.3
+        #   register: stat_result
   
          
         - name: moving file 1
@@ -155,7 +155,7 @@
         
         - name: Add Docker repo
           get_url:
-            url: https://download.docker.com/linux/centos/docker-ce.repo
+            url: https://download.docker.com/linux/vagrant/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo
          
   
@@ -196,7 +196,7 @@
         
         - name: Add Docker repo
           get_url:
-            url: https://download.docker.com/linux/centos/docker-ce.repo
+            url: https://download.docker.com/linux/vagrant/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo         
   
            
@@ -238,11 +238,11 @@
         - name: NODEJS and NPM Installation
           get_url:
                url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
-               dest: /home/centos/install.sh 
+               dest: /home/vagrant/install.sh 
         
         - name: run shell script 
           command:
-               cmd: bash /home/centos/install.sh
+               cmd: bash /home/vagrant/install.sh
         
         - name: Reboot server in order for changes to take place
           command: "sleep 1 && reboot"
@@ -269,9 +269,10 @@
           shell: curl -s "https://get.sdkman.io" | bash
           args: 
              warn: no
-        
+         
         - name : Install the java 11.0.2-open
-          shell: sdk java 11.0.2-open && sdk use java 11.0.2-open
+          command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
+          
 
         - name: SBT Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
@@ -281,6 +282,7 @@
         - name:  Install Sbt
           yum:
             name: sbt 
+        
             
 
   
