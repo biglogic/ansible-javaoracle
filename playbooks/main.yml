@@ -2,21 +2,21 @@
     - hosts: localhost
       connection: local
       become: yes
-      become_user: root
+      become_user: root  
       vars:
-        ansible_python_interpreter: /usr/bin/python2      
+        ansible_python_interpreter: /usr/bin/python2   
       vars_files:
         - ../groupvars/var.yml
     
       tasks:
-       # - name: Add proxy to ec2-user
-        #  lineinfile:
-        #      dest: /home/vagrant/.bashrc
-        #      line: '{{ item }}'
-         # with_items:
-          #          - 'export http_proxy="http://172.18.10.246:80"'
-           #         - 'export https_proxy="http://172.18.10.246:80"'
-            #        - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+      #  - name: Add proxy to ec2-user
+      #    lineinfile:
+      #        dest: /home/centos/.bashrc
+      #        line: '{{ item }}'
+      #    with_items:
+      #              - 'export http_proxy="http://172.18.10.246:80"'
+      #              - 'export https_proxy="http://172.18.10.246:80"'
+      #              - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
     
         # - name: Add proxy to environment
         #   lineinfile:
@@ -42,22 +42,25 @@
     
         - name: Download java8
           get_url:
-              url: "{{ item.value.url }}"
-              headers: "{{ item.value.args }}"
-              force: yes
-              dest: /tmp
+             url: "{{ item.value.url }}"
+             headers: "{{ item.value.args }}"
+             force: yes
+             dest: /tmp
           with_dict: "{{ java }}"  
           when: java_result is failed
-    
+
+        - name: get gpg keys
+          command:  
+                cmd: chdir= /tmp  rpmkeys -K jdk-8u141-linux-x64.rpm
+
         - name: Install package java8
-          yum:
-            name: /tmp/jdk-8u141-linux-x64.rpm
-            state: present
-          with_dict: "{{ java }}"  
+          command: rpm -i /tmp/jdk-8u141-linux-x64.rpm
+          args:
+            warn: no
           when: java_result is failed
        
         - name: Check if maven is installed
-          command: mvn -v
+          command: mvn --version
           register: maven_result
           ignore_errors: True
     
@@ -81,18 +84,20 @@
         - name: Unarchive Maven
           unarchive:
              src: /tmp/apache-maven-3.6.3-bin.tar.gz
-             dest: /opt/
+             dest: /usr/local/
              mode: 0755
              owner: root
              group: root
           when: maven_result is failed
-  
-        - name: install maven package
-          yum:
-              name: /opt/apache-maven-3.6.3  
-              state: present 
-          when: maven_result is failed 
         
+        - name: create maven script
+          file:
+            path: "home/centos/.bashrc/maven.sh"
+            mode: 0777
+            state: touch 
+          when: maven_result is failed       
+
+          
        # - name: System-wide environment variables.
         #    lineinfile:
         #      dest: /etc/environment
@@ -104,14 +109,29 @@
          
         - name: checking if the file 1 exists
           stat:      
-              path: /opt/apache-maven-3.6.3
+              path: /usr/local/apache-maven-3.6.3
           register: stat_result
   
          
         - name: moving file 1
-          command: mv /opt/apache-maven-3.6.3   /usr/local/apache-maven
+          command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
           when: stat_result.stat.exists == True                    
         
+        
+        - name: create maven environment
+          lineinfile:
+            dest: /home/centos/.bashrc
+            line: '{{ item }}'
+          with_items:
+           - 'export M2_HOME=/usr/local/apache-maven'
+           - 'export M2=$M2_HOME/bin'
+           - 'export PATH=$M2:$PATH'
+            
+          
+       
+        - name:
+          shell: source /home/centos/.bashrc
+              
         - name: Install yum package
           yum:
            name:
@@ -126,37 +146,40 @@
              - unzip
              - zip
 
-        - name: Get git binary
-          unarchive:
-             src: "{{ url }}"
-             dest: "{{ temp_dir }}"
-             remote_src: yes
-          changed_when: false
-          register: result     
-                   
-        - name: Make all git binary
-          make:
-             chdir: "{{ binary_dir }}"
-             target: all
-             params:
-              prefix: "{{ prefix }}"
-          changed_when: false 
+        # - name: Get git binary
+        #   unarchive:
+        #      src: "{{ url }}"
+        #      dest: "{{ temp_dir }}"
+        #      remote_src: yes
+        #   changed_when: false
+        #   register: result     
+        #   when: git_version is failed
+
+        # - name: Make all git binary
+        #   make:
+        #      chdir: "{{ binary_dir }}"
+        #      target: all
+        #      params:
+        #       prefix: "{{ prefix }}"
+        #   changed_when: false
+        #   when: git_version is failed  
   
-        - name: Make install git binary
-          make:
-            chdir: "{{ binary_dir }}"
-            target: install
-            params:
-              prefix: "{{ prefix }}"
-          changed_when: false
+        # - name: Make install git binary
+        #   make:
+        #     chdir: "{{ binary_dir }}"
+        #     target: install
+        #     params:
+        #       prefix: "{{ prefix }}"
+        #   changed_when: false
+        #   when: git_version is failed
          
-        - name: Remove file
-          file:
-            path: "{{ binary_dir }}"
-            state: absent
-          changed_when: false 
-  
+        # - name: Remove file
+        #   file:
+        #     path: "{{ binary_dir }}"
+        #     state: absent
+        #   changed_when: false 
         
+         
         - name: Add Docker repo
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
@@ -169,7 +192,7 @@
             section: 'docker-ce-edge'
             option: enabled
             value: 0
-          
+           
   
         - name: Enable Docker Test repo
           ini_file:
@@ -177,7 +200,7 @@
             section: 'docker-ce-test'
             option: enabled
             value: 0
-        
+         
   
         - name: Install Docker
           package:
@@ -185,28 +208,30 @@
            state: latest
          
   
-        - name: Start Docker service
-          service:
-            name: docker
-            state: started
-            enabled: yes
-        
+         
   
-        - name: Add user vagrant to docker group
-          user:
-            name: vagrant
-            groups: docker
-            append: yes
         
         - name: Add Docker repo
           get_url:
-            url: https://download.docker.com/linux/vagrant/docker-ce.repo
+            url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo         
-  
-           
-        - name: Add user vagrant to docker group
+        
+        # - name: Start Docker service
+        #   service:
+        #     name: docker
+        #     state: started
+        #     enabled: yes
+                
+
+        - name: Add user centos to docker group
           user:
-             name: "vagrant"
+              name: centos
+              groups: docker
+              append: yes    
+           
+        - name: Add user centos to docker group
+          user:
+             name: "centos"
              groups: "docker"
              append: "yes"
          
@@ -227,32 +252,32 @@
         
         - name: Creates directory
           file:
-            path: /home/vagrant/python3
+            path: /home/centos/python3
             state: directory  
         
-        - name: install python package
-          pip:
-            name: virualenv     
+       # - name: install python package
+        #  pip:
+        #    name: virualenv     
   
         # - name: install virtual environment
         #   command:
-        #     cmd: :/home/vagrant/python3 virtualenv  /usr/bin/python3 -p python3
+        #     cmd: :/home/centos/python3 virtualenv  /usr/bin/python3 -p python3
               
         
         - name: NODEJS and NPM Installation
           get_url:
                url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
-               dest: /home/vagrant/install.sh 
+               dest: /home/centos/install.sh
+               mode: 0755 
         
-        - name: run shell script 
-          command:
-               cmd: bash /home/vagrant/install.sh
-        
-        #- name: Reboot server in order for changes to take place
-         # command: "sleep 1 && reboot"
-        
+        - name: run shell script
+          shell: "bash /home/centos/install.sh"
+          args:
+            executable: /bin/bash
+
+       
         - name: nvm install 12.7.0
-          shell: "source /root/.nvm/nvm.sh && nvm install 12.7.0" 
+          shell: "source /home/centos/.nvm/nvm.sh && nvm install 12.7.0" 
           args:
             executable: /bin/bash
 
@@ -270,9 +295,22 @@
 
 
         - name: Java 11 Installation
-          shell: curl -s "https://get.sdkman.io" | bash
-          args: 
-             warn: no
+          get_url: 
+              url: https://get.sdkman.io 
+              dest: /home/centos/run.sh
+              mode: 0755
+    
+        - name : 
+          command:
+              cmd: "bash /home/centos/run.sh"  
+          register: output
+          
+        - debug: var=output
+  
+        
+        - name: source sdk
+          shell: "source  /home/centos/.sdkman/bin/sdkman-init.sh"
+            
          
         - name : Install the java 11.0.2-open
           command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
