@@ -205,10 +205,6 @@
            name: docker-ce
            state: latest
          
-  
-         
-  
-        
         - name: Add Docker repo
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
@@ -235,7 +231,7 @@
          
         - name: Install Docker Compose
           get_url:
-             url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
+             url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)"
              dest: /usr/local/bin/docker-compose
              owner: root
              mode: 0755  
@@ -253,13 +249,16 @@
             path: /home/centos/python3
             state: directory  
         
-       # - name: install python package
-        #  pip:
-        #    name: virualenv     
+        # - name: install python package
+        #   shell: python3 -m pip install --user virtualenv
+        #   args:
+        #     executable: /bin/bash 
+        #   become: no        
   
         # - name: install virtual environment
         #   command:
-        #     cmd: :/home/centos/python3 virtualenv  /usr/bin/python3 -p python3
+        #    cmd: chdir=/home/centos/python3  virtualenv -p /usr/bin/python3 python3
+
               
         
         - name: NODEJS and NPM Installation
@@ -329,7 +328,8 @@
 
         - name:  Install Sbt
           yum:
-            name: sbt 
+            name: sbt
+          become: no   
         
             
 
