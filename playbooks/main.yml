@@ -1,7 +1,8 @@
 ---
     - hosts: localhost
       connection: local
-      become: yes  
+      become: yes
+      become_user: root  
       vars:
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
@@ -177,8 +178,8 @@
           changed_when: false 
         
          
+        - name: Add Docker repo
           get_url:
-            - name: Add Docker repo
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo
          
@@ -214,8 +215,8 @@
             dest: /etc/yum.repos.d/docer-ce.repo         
         
         - name: Start Docker service
-          service:
-            name: docker
+           service:
+             name: docker
              state: started
              enabled: yes
                 
@@ -250,13 +251,15 @@
         - name: Creates directory
           file:
             path: /home/centos/python3
-            state: directory      
+            state: directory  
+        
+       # - name: install python package
+        #  pip:
+        #    name: virualenv     
   
-        - name: install virtual environment
-          command:
-            cmd: : virtualenv -p /usr/bin/python3 -p python3
-            create: /usr/bin/python3
-          become: no  
+        # - name: install virtual environment
+        #   command:
+        #     cmd: :/home/centos/python3 virtualenv  /usr/bin/python3 -p python3
               
         
         - name: NODEJS and NPM Installation
@@ -275,7 +278,7 @@
           shell: "source /home/centos/.nvm/nvm.sh " 
           args:
             executable: /bin/bash
-          become: no
+          become: yes
 
 
 
@@ -283,7 +286,6 @@
           command: "npm -v && node -v "
           register: version_message
           ignore_errors: yes
-          become: no
         
         - debug:
             msg: "{{version_message}}"  
@@ -303,7 +305,6 @@
           command:
               cmd: "bash /home/centos/run.sh"  
           register: output
-          become: no
           
         - debug: var=output
   
@@ -317,7 +318,7 @@
          
         - name : Install the java 11.0.2-open
           command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
-          become: no
+          
 
         - name: SBT Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
