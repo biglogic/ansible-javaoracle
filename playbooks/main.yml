@@ -1,8 +1,7 @@
 ---
     - hosts: localhost
       connection: local
-      become: yes
-      become_user: root  
+      become: yes  
       vars:
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
@@ -49,10 +48,7 @@
           with_dict: "{{ java }}"  
           when: java_result is failed
 
-        - name: get gpg keys
-          command:  
-                cmd: chdir= /tmp  rpmkeys -K jdk-8u141-linux-x64.rpm
-
+      
         - name: Install package java8
           command: rpm -i /tmp/jdk-8u141-linux-x64.rpm
           args:
@@ -89,13 +85,7 @@
              owner: root
              group: root
           when: maven_result is failed
-        
-        - name: create maven script
-          file:
-            path: "home/centos/.bashrc/maven.sh"
-            mode: 0777
-            state: touch 
-          when: maven_result is failed       
+          
 
           
        # - name: System-wide environment variables.
@@ -109,13 +99,13 @@
          
         - name: checking if the file 1 exists
           stat:      
-              path: /usr/local/apache-maven-3.6.3
+              path: /usr/local/apache-maven
           register: stat_result
   
          
         - name: moving file 1
           command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
-          when: stat_result.stat.exists == True                    
+          when: stat_result.stat.exists == False                    
         
         
         - name: create maven environment
@@ -131,7 +121,10 @@
        
         - name:
           shell: source /home/centos/.bashrc
-              
+          args:
+            executable: /bin/bash 
+          become: no
+
         - name: Install yum package
           yum:
            name:
@@ -145,43 +138,47 @@
              - cpan
              - unzip
              - zip
+        
+        - name: check git version 
+          command: " git --version"
+          register: git_version
 
-        # - name: Get git binary
-        #   unarchive:
-        #      src: "{{ url }}"
-        #      dest: "{{ temp_dir }}"
-        #      remote_src: yes
-        #   changed_when: false
-        #   register: result     
-        #   when: git_version is failed
+        - name: Get git binary
+          unarchive:
+             src: "{{ url }}"
+             dest: "{{ temp_dir }}"
+             remote_src: yes
+          changed_when: false
+          register: result     
+          when: git_version is failed
 
-        # - name: Make all git binary
-        #   make:
-        #      chdir: "{{ binary_dir }}"
-        #      target: all
-        #      params:
-        #       prefix: "{{ prefix }}"
-        #   changed_when: false
-        #   when: git_version is failed  
+        - name: Make all git binary
+          make:
+             chdir: "{{ binary_dir }}"
+             target: all
+             params:
+              prefix: "{{ prefix }}"
+          changed_when: false
+          when: git_version is failed  
   
-        # - name: Make install git binary
-        #   make:
-        #     chdir: "{{ binary_dir }}"
-        #     target: install
-        #     params:
-        #       prefix: "{{ prefix }}"
-        #   changed_when: false
-        #   when: git_version is failed
+        - name: Make install git binary
+          make:
+            chdir: "{{ binary_dir }}"
+            target: install
+            params:
+              prefix: "{{ prefix }}"
+          changed_when: false
+          when: git_version is failed
          
-        # - name: Remove file
-        #   file:
-        #     path: "{{ binary_dir }}"
-        #     state: absent
-        #   changed_when: false 
+        - name: Remove file
+          file:
+            path: "{{ binary_dir }}"
+            state: absent
+          changed_when: false 
         
          
-        - name: Add Docker repo
           get_url:
+            - name: Add Docker repo
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo
          
@@ -216,11 +213,11 @@
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo         
         
-        # - name: Start Docker service
-        #   service:
-        #     name: docker
-        #     state: started
-        #     enabled: yes
+        - name: Start Docker service
+          service:
+            name: docker
+             state: started
+             enabled: yes
                 
 
         - name: Add user centos to docker group
@@ -253,15 +250,13 @@
         - name: Creates directory
           file:
             path: /home/centos/python3
-            state: directory  
-        
-       # - name: install python package
-        #  pip:
-        #    name: virualenv     
+            state: directory      
   
-        # - name: install virtual environment
-        #   command:
-        #     cmd: :/home/centos/python3 virtualenv  /usr/bin/python3 -p python3
+        - name: install virtual environment
+          command:
+            cmd: : virtualenv -p /usr/bin/python3 -p python3
+            create: /usr/bin/python3
+          become: no  
               
         
         - name: NODEJS and NPM Installation
@@ -274,17 +269,21 @@
           shell: "bash /home/centos/install.sh"
           args:
             executable: /bin/bash
-
+          become: no
        
         - name: nvm install 12.7.0
-          shell: "source /home/centos/.nvm/nvm.sh && nvm install 12.7.0" 
+          shell: "source /home/centos/.nvm/nvm.sh " 
           args:
             executable: /bin/bash
+          become: no
+
+
 
         - name: check version
           command: "npm -v && node -v "
           register: version_message
           ignore_errors: yes
+          become: no
         
         - debug:
             msg: "{{version_message}}"  
@@ -304,22 +303,28 @@
           command:
               cmd: "bash /home/centos/run.sh"  
           register: output
+          become: no
           
         - debug: var=output
   
         
         - name: source sdk
           shell: "source  /home/centos/.sdkman/bin/sdkman-init.sh"
-            
+          args:
+            executable: /bin/bash
+          become: no  
+
          
         - name : Install the java 11.0.2-open
           command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
-          
+          become: no
 
         - name: SBT Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
           args:
             warn: no 
+            executable: /bin/bash
+          become: no 
 
         - name:  Install Sbt
           yum:
