@@ -197,7 +197,7 @@
             dest: /etc/yum.repos.d/docer-ce.repo
             section: 'docker-ce-edge'
             option: enabled
-            value: 0
+            value: '0'
           become: yes
           become_user: root
            
@@ -206,7 +206,7 @@
             dest: /etc/yum.repos.d/docer-ce.repo
             section: 'docker-ce-test'
             option: enabled
-            value: 0
+            value: '0'
           become: yes
           become_user: root
   
@@ -285,9 +285,7 @@
           
        
         - name: nvm install 12.7.0
-          shell: |
-            source /home/ec2-user/.nvm/nvm.sh 
-            nvm install 12.7.0 
+          shell: source /home/ec2-user/.bashrc; nvm install 12.7.0 
           args:
             executable: /bin/bash
           
@@ -321,9 +319,7 @@
         - debug: var=output
   
         - name: source sdk and Install the java 11.0.2-open
-          shell: |
-            source  /home/ec2-user/.sdkman/bin/sdkman-init.sh
-            sdk java 11.0.2-open && sdk use java 11.0.2-open
+          shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
           args:
             executable: /bin/bash
           tags: sdk  
