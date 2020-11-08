@@ -1,8 +1,7 @@
 ---
     - hosts: localhost
       connection: local
-      become: yes
-      become_user: root  
+      become: no
       vars:
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
@@ -46,16 +45,20 @@
              headers: "{{ item.value.args }}"
              force: yes
              dest: /tmp
-          with_dict: "{{ java }}"  
+          with_dict: "{{ java }}"
+          become: yes
+          become: root   
           when: java_result is failed
-
+          
       
         - name: Install package java8
           command: rpm -i /tmp/jdk-8u141-linux-x64.rpm
           args:
             warn: no
           when: java_result is failed
-       
+          become: yes
+          become_user: root 
+
         - name: Check if maven is installed
           command: mvn --version
           register: maven_result
@@ -85,6 +88,8 @@
              mode: 0755
              owner: root
              group: root
+          become: yes
+          become_user: root   
           when: maven_result is failed
           
 
@@ -107,7 +112,8 @@
         - name: moving file 1
           command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
           when: stat_result.stat.exists == False                    
-        
+          become: yes
+          become_user: root 
         
         - name: create maven environment
           lineinfile:
@@ -125,7 +131,9 @@
           args:
             executable: /bin/bash 
           become: no
+          register: source_output
 
+        - debug: msg="{{source_output}}"  
         - name: Install yum package
           yum:
            name:
@@ -139,9 +147,12 @@
              - cpan
              - unzip
              - zip
-        
+          become: yes
+          become_user: root
+
+
         - name: check git version 
-          command: " git --version"
+          command: "git --version"
           register: git_version
 
         - name: Get git binary
@@ -182,7 +193,8 @@
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo
-         
+          become: yes
+          become_user: root
   
         - name: Enable Docker Edge repo
           ini_file:
@@ -190,6 +202,8 @@
             section: 'docker-ce-edge'
             option: enabled
             value: 0
+          become: yes
+          become_user: root
            
   
         - name: Enable Docker Test repo
@@ -198,48 +212,54 @@
             section: 'docker-ce-test'
             option: enabled
             value: 0
-         
+          become: yes
+          become_user: root
   
         - name: Install Docker
           package:
            name: docker-ce
            state: latest
-         
+          become: yes
+          become_user: root 
+
         - name: Add Docker repo
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo         
-        
+          become: yes
+          become_user: root
+
         - name: Start Docker service
-           service:
-             name: docker
-             state: started
-             enabled: yes
-                
+          service:
+              name: docker
+              state: started
+              enabled: yes
+          become: yes
+          become_user: root      
 
         - name: Add user centos to docker group
           user:
               name: centos
               groups: docker
               append: yes    
-           
-        - name: Add user centos to docker group
-          user:
-             name: "centos"
-             groups: "docker"
-             append: "yes"
-         
+          become: yes
+          become_user: root
+      
         - name: Install Docker Compose
           get_url:
-             url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)"
+             url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
              dest: /usr/local/bin/docker-compose
              owner: root
              mode: 0755  
-  
+          become: yes
+          become_user: root
+
         - name: install python
           yum:
                name: python3
-               
+          become: yes
+          become_user: root
+
         - name: check python version 
           command: python3 --version         
           register: python_result
@@ -249,15 +269,18 @@
             path: /home/centos/python3
             state: directory  
         
-        # - name: install python package
-        #   shell: python3 -m pip install --user virtualenv
-        #   args:
-        #     executable: /bin/bash 
-        #   become: no        
+        - name: install python package
+          shell: python3 -m pip install --user virtualenv
+          args:
+             executable: /bin/bash 
+                   
   
-        # - name: install virtual environment
-        #   command:
-        #    cmd: chdir=/home/centos/python3  virtualenv -p /usr/bin/python3 python3
+        - name: install virtual environment
+          command:
+            cmd: python3 -m venv /home/centos/python3
+          tags: python 
+          become: yes
+          become_user: root
 
               
         
@@ -266,23 +289,25 @@
                url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
                dest: /home/centos/install.sh
                mode: 0755 
-        
+          become: yes
+          become_user: root 
+
         - name: run shell script
-          shell: "bash /home/centos/install.sh"
+          shell: bash /home/centos/install.sh
           args:
             executable: /bin/bash
-          become: no
+          
        
         - name: nvm install 12.7.0
-          shell: "source /home/centos/.nvm/nvm.sh " 
+          shell: source /home/centos/.nvm/nvm.sh && nvm install 12.7.0 
           args:
             executable: /bin/bash
-          become: yes
+          
 
 
 
         - name: check version
-          command: "npm -v && node -v "
+          command: "npm -v && node -v" 
           register: version_message
           ignore_errors: yes
         
@@ -292,14 +317,17 @@
         - name: PSQL Installation
           yum:
             name: postgresql-server
-
+          become: yes
+          become_user: root 
 
         - name: Java 11 Installation
           get_url: 
               url: https://get.sdkman.io 
               dest: /home/centos/run.sh
               mode: 0755
-    
+          become: yes 
+          become_user: root 
+
         - name : 
           command:
               cmd: "bash /home/centos/run.sh"  
@@ -312,11 +340,12 @@
           shell: "source  /home/centos/.sdkman/bin/sdkman-init.sh"
           args:
             executable: /bin/bash
-          become: no  
+          tags: sdk  
+            
 
          
-        - name : Install the java 11.0.2-open
-          command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
+       # - name : Install the java 11.0.2-open
+        #  command: "sdk java 11.0.2-open && sdk use java 11.0.2-open"
           
 
         - name: SBT Installation
@@ -324,13 +353,15 @@
           args:
             warn: no 
             executable: /bin/bash
-          become: no 
+        
 
         - name:  Install Sbt
           yum:
             name: sbt
-          become: no   
-        
+          become: yes
+          become_user: root
+          tags: Sbt  
+          
             
 
   
