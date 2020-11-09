@@ -30,15 +30,17 @@
           command: java -version
           register: java_result
           ignore_errors: True
-    
+          tags: default
+
         - debug:
               msg: "Failed - Java is not installed"
           when: java_result is failed
-    
+          tags: default 
+
         - debug:
              msg: "Success - Java is installed"
           when:  java_result is success
-    
+                 
         - name: Download java8
           get_url:
              url: "{{ item.value.url }}"
@@ -49,7 +51,7 @@
           become: yes
           become: root   
           when: java_result is failed
-          
+          tags: java8  
       
         - name: Install package java8
           command: rpm -i /tmp/jdk-8u141-linux-x64.rpm
@@ -57,21 +59,24 @@
             warn: no
           when: java_result is failed
           become: yes
-          become_user: root 
+          become_user: root
+          tags: java8 
 
         - name: Check if maven is installed
           command: mvn --version
           register: maven_result
           ignore_errors: True
-    
+          tags: default
+
         - debug:
              msg: "Failed - maven is not installed"
           when: maven_result is failed
-        
+          tags: default
+
         - debug:
              msg: "Success - Java is installed"
           when:  maven_result is success
-    
+          tags: default
   
         - name: Download Maven
           get_url:
@@ -80,7 +85,8 @@
              dest: /tmp
           with_dict: "{{ maven }}" 
           when: maven_result is failed
-    
+          tags: default
+
         - name: Unarchive Maven
           unarchive:
              src: /tmp/apache-maven-3.6.3-bin.tar.gz
@@ -91,7 +97,7 @@
           become: yes
           become_user: root   
           when: maven_result is failed
-          
+          tags: default
 
           
        # - name: System-wide environment variables.
@@ -107,14 +113,15 @@
           stat:      
               path: /usr/local/apache-maven
           register: stat_result
-  
+          tags: default
          
         - name: moving file 1
           command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
           when: stat_result.stat.exists == False                    
           become: yes
           become_user: root 
-        
+          tags: default
+
         - name: create maven environment
           lineinfile:
             dest: /home/ec2-user/.bashrc
@@ -123,13 +130,15 @@
            - 'export M2_HOME=/usr/local/apache-maven'
            - 'export M2=$M2_HOME/bin'
            - 'export PATH=$M2:$PATH'
-            
+          tags: default
+
         - name:
           shell: source /home/ec2-user/.bashrc
           args:
             executable: /bin/bash 
           become: no
           register: source_output
+          tags: default
 
         - debug: msg="{{source_output}}"  
         - name: Install yum package
@@ -147,10 +156,12 @@
              - zip
           become: yes
           become_user: root
+          tags: default
 
         - name: check git version 
           command: "git --version"
           register: git_version
+          tags: default
 
         - name: Get git binary
           unarchive:
@@ -160,6 +171,7 @@
           changed_when: false
           register: result     
           when: git_version is failed
+          tags: default
 
         - name: Make all git binary
           make:
@@ -169,7 +181,8 @@
               prefix: "{{ prefix }}"
           changed_when: false
           when: git_version is failed  
-  
+          tags: default
+
         - name: Make install git binary
           make:
             chdir: "{{ binary_dir }}"
@@ -178,20 +191,23 @@
               prefix: "{{ prefix }}"
           changed_when: false
           when: git_version is failed
-         
+          tags: default
+
         - name: Remove file
           file:
             path: "{{ binary_dir }}"
             state: absent
           changed_when: false 
-         
+          tags: default
+
         - name: Add Docker repo
           get_url:
             url: https://download.docker.com/linux/centos/docker-ce.repo
             dest: /etc/yum.repos.d/docer-ce.repo
           become: yes
           become_user: root
-  
+          tags: default
+
         - name: Enable Docker Edge repo
           ini_file:
             dest: /etc/yum.repos.d/docer-ce.repo
@@ -200,7 +216,8 @@
             value: '0'
           become: yes
           become_user: root
-           
+          tags: default
+
         - name: Enable Docker Test repo
           ini_file:
             dest: /etc/yum.repos.d/docer-ce.repo
@@ -209,13 +226,26 @@
             value: '0'
           become: yes
           become_user: root
-  
+          tags: default
+
         - name: Install Docker
           package:
            name: docker-ce
            state: latest
           become: yes
           become_user: root 
+          tags: default
+        
+        # - name: Add proxy to docker
+        #   lineinfile:
+        #            dest: /etc/sysconfig/docke
+        #            line: '{{ item }}'
+          #   with_items:
+          #         - 'HTTP_PROXY=http://172.18.10.246:80'
+          #         - 'HTTPS_PROXY=http://proxy.cat.com:80/'
+          #         - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
+          #   tags: default
+    
 
         - name: Start Docker service
           service:
@@ -224,6 +254,7 @@
               enabled: yes
           become: yes
           become_user: root      
+          tags: default
 
         - name: Add user ec2-user to docker group
           user:
@@ -232,7 +263,8 @@
               append: yes    
           become: yes
           become_user: root
-      
+          tags: default
+
         - name: Install Docker Compose
           get_url:
              url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
@@ -241,27 +273,31 @@
              mode: 0755  
           become: yes
           become_user: root
+          tags: default
 
         - name: install python
           yum:
                name: python3
           become: yes
           become_user: root
+          tags: default
 
         - name: check python version 
           command: python3 --version         
           register: python_result
-        
+          tags: default
+
         - name: Creates directory
           file:
             path: /home/ec2-user/python3
             state: directory  
-        
+          tags: default
+
         - name: install python package
           shell: python3 -m pip install --user virtualenv
           args:
              executable: /bin/bash 
-                   
+          tags: default         
   
         - name: install virtual environment
           command:
@@ -269,6 +305,7 @@
           tags: python 
           become: yes
           become_user: root
+          tags: default
 
         - name: NODEJS and NPM Installation
           get_url:
@@ -277,31 +314,36 @@
                mode: 0755 
           become: yes
           become_user: root 
+          tags: default
 
         - name: run shell script
           shell: bash /home/ec2-user/install.sh
           args:
             executable: /bin/bash
-          
+          tags: default
        
         - name: nvm install 12.7.0
           shell: source /home/ec2-user/.bashrc; nvm install 12.7.0 
           args:
             executable: /bin/bash
-          
+          tags: default
+
         - name: check version
           command: "npm -v && node -v" 
           register: version_message
           ignore_errors: yes
-        
+          tags: default
+
         - debug:
             msg: "{{version_message}}"  
-        
+          tags: default
+
         - name: PSQL Installation
           yum:
             name: postgresql-server
           become: yes
           become_user: root 
+          tags: default
 
         - name: Java 11 Installation
           get_url: 
@@ -310,29 +352,43 @@
               mode: 0755
           become: yes 
           become_user: root 
+          tags: java11
 
         - name : 
           command:
               cmd: "bash /home/ec2-user/run.sh"  
           register: output
-          
+          tags: java11
+
         - debug: var=output
-  
+          tags: java11
+
         - name: source sdk and Install the java 11.0.2-open
           shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
           args:
             executable: /bin/bash
           tags: sdk  
-            
+          tags: default 
+
         - name: SBT Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
           args:
             warn: no 
             executable: /bin/bash
-        
+          tags: default
+
         - name:  Install Sbt
           yum:
             name: sbt
           become: yes
           become_user: root
-          tags: Sbt  
+          tags: default
+          
+        # - name: add  Sbt environtment 
+        #   lineinfile:
+        #          dest:  /etc/environment
+        #          line: '{{item}}'
+        #   with_items:
+        #        -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
+        #   tags: default     
+  
