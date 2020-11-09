@@ -290,7 +290,7 @@
           get_url:
              url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
              dest: /usr/local/bin/docker-compose
-             owner: root
+             owner: ec2-user
              mode: 0755  
           become: yes
           become_user: root
@@ -348,7 +348,7 @@
           args:
             executable: /bin/bash
           tags: default
-
+          
         - name: check version
           command: "npm -v && node -v" 
           register: version_message
