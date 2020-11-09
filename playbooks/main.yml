@@ -17,7 +17,7 @@
       #              - 'export https_proxy="http://172.18.10.246:80"'
       #              - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
       #     tags: default
-      
+
         # - name: Add proxy to environment
         #   lineinfile:
         #       dest: /etc/environment
@@ -27,6 +27,26 @@
         #       - 'export https_proxy="http://172.18.10.246:80"'
         #       - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
         #    tags: default
+
+        - name:  Download the VSTS agent
+          get_url:
+              url:  https://vstsagentpackage.azureedge.net/agent/2.173.0/vsts-agent-linux-x64-2.173.0.tar.gz
+              dest: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
+              force: yes
+          tags: default 
+        
+        - name: Create directory
+          file:
+              path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+              state: directory
+          tags: default      
+        
+        - name :  Unpack the downloaded agent
+          unarchive:
+            src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
+            dest: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+          tags: default
+           
         - name: Check if java is installed
           command: java -version
           register: java_result
@@ -346,23 +366,23 @@
           become_user: root 
           tags: default
 
-        - name: Java 11 Installation
+        - name: Sdk Installation
           get_url: 
               url: https://get.sdkman.io 
               dest: /home/ec2-user/run.sh
               mode: 0755
           become: yes 
           become_user: root 
-          tags: java11
+          tags: default
 
         - name : 
           command:
               cmd: "bash /home/ec2-user/run.sh"  
           register: output
-          tags: java11
+          tags: default
 
         - debug: var=output
-          tags: java11
+          tags: default
 
         - name: source sdk and Install the java 11.0.2-open
           shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
