@@ -291,7 +291,7 @@
              url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
              dest: /usr/local/bin/docker-compose
              owner: ec2-user
-             mode: 0755  
+             mode: 0777  
           become: yes
           become_user: root
           tags: default
@@ -332,7 +332,7 @@
           get_url:
                url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
                dest: /home/ec2-user/install.sh
-               mode: 0777 
+               mode: 0777  
           become: yes
           become_user: root 
           tags: default
