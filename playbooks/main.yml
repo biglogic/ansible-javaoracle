@@ -368,7 +368,7 @@
           args:
             executable: /bin/bash
           tags: sdk  
-          tags: default 
+          tags: java11 
 
         - name: SBT Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
@@ -383,7 +383,7 @@
           become: yes
           become_user: root
           tags: default
-          
+
         # - name: add  Sbt environtment 
         #   lineinfile:
         #          dest:  /etc/environment
