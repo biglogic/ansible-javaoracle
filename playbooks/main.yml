@@ -34,41 +34,49 @@
         #     - 'export https_proxy="http://172.18.10.246:80"'
         #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
         #   tags: default
+        - name: checking if the file 1 exists
+          stat:      
+            path: /home/ec2-user/vsts-agent-linux-x64-2.173.0
+          register: vsts_dir
+          tags: default
 
         - name:  download the vsts agent
           get_url:
             url:  https://vstsagentpackage.azureedge.net/agent/2.173.0/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             force: yes
+          when: vsts_dir is failed
           tags: default 
         
         - name: create directory vsts agent
           file:
             path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
             state: directory
+          when: vsts_dir is failed
           tags: default      
         
         - name :  Unpack the downloaded vsts agent
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+          when: vsts_dir is failed
           tags: default
            
         - name: Check if java is installed
           command: java -version
           register: java_result
           ignore_errors: True
-          tags: java8
+          tags: default
 
         - debug:
-              msg: "Failed - Java is not installed"
+            msg: "Failed - Java is not installed"
           when: java_result is failed
-          tags: java8 
+          tags: default 
 
         - debug:
-             msg: "Success - Java is installed"
+            msg: "Success - Java is installed"
           when:  java_result is success
-          tags: java8
+          tags: default
                  
         - name: download java8 rpm
           get_url:
@@ -270,12 +278,14 @@
             url: https://get.sdkman.io 
             dest: /home/ec2-user/run.sh
             mode: 0755
-          tags: default
+          when: java_result is failed
+          tags: java11
 
         - name : run sdkman installation script
           command:
             cmd: "bash /home/ec2-user/run.sh"  
-          tags: default
+          when: java_result is failed
+          tags: java11
 
         - name: source sdk and Install the java 11.0.2-open
           shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
@@ -284,7 +294,7 @@
           tags: sdk  
           tags: java11 
 
-        # - name: add  Sbt environtment 
+        # - name: add  sbt environtment 
         #   lineinfile:
         #     dest:  /etc/environment
         #     line: '{{item}}'
