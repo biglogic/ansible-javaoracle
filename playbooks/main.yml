@@ -2,6 +2,7 @@
     - hosts: localhost
       connection: local
       become: yes
+      become_user: ec2-user
       vars:
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
@@ -93,6 +94,7 @@
           args:
             warn: no
           when: java_result is failed
+          become_user: root
           tags: java8 
 
         - name: Check if maven is installed
@@ -128,6 +130,7 @@
              owner: root
              group: root  
           when: maven_result is failed
+          become_user: root
           tags: default
      
         # - name: System-wide environment variables.
@@ -140,8 +143,9 @@
         #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
           
         - name: move maven bin to /usr/local
-          command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
-          when: maven_result is failed                  
+          command: mv /usr/local/apache-maven-3.6.3 /usr/local/apache-maven
+          when: maven_result is failed
+          become_user: root                  
           tags: default
 
         - name: create maven environment
@@ -169,6 +173,7 @@
           args:
             warn: no 
             executable: /bin/bash
+          become_user: root
           tags: default
 
         - name: Install yum package
@@ -188,6 +193,7 @@
              - python3
              - postgresql-server
              - sbt
+          become_user: root
           tags: default
         
         # - name: Add proxy to docker
@@ -198,20 +204,23 @@
         #     - 'HTTP_PROXY=http://172.18.10.246:80'
         #     - 'HTTPS_PROXY=http://proxy.cat.com:80/'
         #     - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
+        #   become_user: root
         #   tags: default
     
         - name: Start Docker service
           service:
               name: docker
               state: started
-              enabled: yes    
+              enabled: yes 
+          become_user: root   
           tags: default
 
         - name: Add user ec2-user to docker group
           user:
             name: ec2-user
             groups: docker
-            append: yes    
+            append: yes
+          become_user: root
           tags: default
 
         - name: Install Docker Compose
@@ -220,6 +229,7 @@
              dest: /usr/local/bin/docker-compose
              owner: root
              mode: 0755  
+          become_user: root
           tags: default
 
         - name: check python version 
