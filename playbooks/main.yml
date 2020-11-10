@@ -15,25 +15,25 @@
           register: source_output
           tags: default
 
-        - name: add proxy to ec2-user
-          lineinfile:
-            dest: /home/ec2-user/.bashrc
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          tags: default
+        # - name: add proxy to ec2-user
+        #   lineinfile:
+        #     dest: /home/ec2-user/.bashrc
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+        #   tags: default
 
-        - name: add proxy to system environment file
-          lineinfile:
-            dest: /etc/environment
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          tags: default
+        # - name: add proxy to system environment file
+        #   lineinfile:
+        #     dest: /etc/environment
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+        #   tags: default
 
         - name:  download the vsts agent
           get_url:
@@ -121,16 +121,15 @@
              group: root  
           when: maven_result is failed
           tags: default
-
-          
-        - name: System-wide environment variables.
-          lineinfile:
-            dest: /etc/environment
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+     
+        # - name: System-wide environment variables.
+        #   lineinfile:
+        #     dest: /etc/environment
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
           
         - name: move maven bin to /usr/local
           command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
@@ -183,15 +182,15 @@
              - sbt
           tags: default
         
-        - name: Add proxy to docker
-          lineinfile:
-            dest: /etc/sysconfig/docker
-            line: '{{ item }}'
-          with_items:
-            - 'HTTP_PROXY=http://172.18.10.246:80'
-            - 'HTTPS_PROXY=http://proxy.cat.com:80/'
-            - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
-          tags: default
+        # - name: Add proxy to docker
+        #   lineinfile:
+        #     dest: /etc/sysconfig/docker
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'HTTP_PROXY=http://172.18.10.246:80'
+        #     - 'HTTPS_PROXY=http://proxy.cat.com:80/'
+        #     - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
+        #   tags: default
     
         - name: Start Docker service
           service:
@@ -285,11 +284,11 @@
           tags: sdk  
           tags: java11 
 
-        - name: add  Sbt environtment 
-          lineinfile:
-            dest:  /etc/environment
-            line: '{{item}}'
-          with_items:
-            -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
-          tags: default     
+        # - name: add  Sbt environtment 
+        #   lineinfile:
+        #     dest:  /etc/environment
+        #     line: '{{item}}'
+        #   with_items:
+        #     -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
+        #   tags: default     
   
