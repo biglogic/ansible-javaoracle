@@ -7,9 +7,3 @@ maven:
    maven3:
       url: http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 
-version: 2.19.1
-prefix: /usr/local
-temp_dir: /tmp
-binary_dir: "{{ temp_dir }}/git-{{ version }}"
-url: "https://www.kernel.org/pub/software/scm/git/git-{{ version }}.tar.gz"
-
