@@ -35,7 +35,7 @@
         #     - 'export https_proxy="http://172.18.10.246:80"'
         #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
         #   tags: default
-        - name: checking if the file 1 exists
+        - name: checking vsts exits or not
           stat:      
             path: /home/ec2-user/vsts-agent-linux-x64-2.173.0
           register: vsts_dir
@@ -274,7 +274,7 @@
           tags: default
 
         - name: check version
-          command: "npm -v && node -v" 
+          command: "source /home/ec2-user/.bashrc; npm -v && node -v" 
           register: version_message
           ignore_errors: yes
           tags: default
@@ -301,7 +301,7 @@
           shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
           args:
             executable: /bin/bash
-          tags: sdk  
+          when: java_result is failed
           tags: java11 
 
         # - name: add  sbt environtment 
