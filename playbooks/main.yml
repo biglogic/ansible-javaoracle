@@ -185,7 +185,7 @@
         
         - name: Add proxy to docker
           lineinfile:
-            dest: /etc/sysconfig/docke
+            dest: /etc/sysconfig/docker
             line: '{{ item }}'
           with_items:
             - 'HTTP_PROXY=http://172.18.10.246:80'
