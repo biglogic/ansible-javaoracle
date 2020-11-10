@@ -1,47 +1,54 @@
 ---
     - hosts: localhost
       connection: local
-      become: no
+      become: yes
       vars:
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
         - ../groupvars/var.yml
     
       tasks:
-      #  - name: Add proxy to ec2-user
-      #    lineinfile:
-      #        dest: /home/ec2-user/.bashrc
-      #        line: '{{ item }}'
-      #    with_items:
-      #              - 'export http_proxy="http://172.18.10.246:80"'
-      #              - 'export https_proxy="http://172.18.10.246:80"'
-      #              - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-      #     tags: default
+        - name:
+          shell: source /home/ec2-user/.bashrc
+          args:
+            executable: /bin/bash 
+          register: source_output
+          tags: default
 
-        # - name: Add proxy to environment
-        #   lineinfile:
-        #       dest: /etc/environment
-        #       line: '{{ item }}'
-        #   with_items:
-        #       - 'export http_proxy="http://172.18.10.246:80"'
-        #       - 'export https_proxy="http://172.18.10.246:80"'
-        #       - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-        #    tags: default
+        - name: add proxy to ec2-user
+          lineinfile:
+            dest: /home/ec2-user/.bashrc
+            line: '{{ item }}'
+          with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+          tags: default
 
-        - name:  Download the VSTS agent
+        - name: add proxy to system environment file
+          lineinfile:
+            dest: /etc/environment
+            line: '{{ item }}'
+          with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+          tags: default
+
+        - name:  download the vsts agent
           get_url:
-              url:  https://vstsagentpackage.azureedge.net/agent/2.173.0/vsts-agent-linux-x64-2.173.0.tar.gz
-              dest: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
-              force: yes
+            url:  https://vstsagentpackage.azureedge.net/agent/2.173.0/vsts-agent-linux-x64-2.173.0.tar.gz
+            dest: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
+            force: yes
           tags: default 
         
-        - name: Create directory
+        - name: create directory vsts agent
           file:
-              path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
-              state: directory
+            path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+            state: directory
           tags: default      
         
-        - name :  Unpack the downloaded agent
+        - name :  Unpack the downloaded vsts agent
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
@@ -51,26 +58,25 @@
           command: java -version
           register: java_result
           ignore_errors: True
-          tags: default
+          tags: java8
 
         - debug:
               msg: "Failed - Java is not installed"
           when: java_result is failed
-          tags: default 
+          tags: java8 
 
         - debug:
              msg: "Success - Java is installed"
           when:  java_result is success
+          tags: java8
                  
-        - name: Download java8
+        - name: download java8 rpm
           get_url:
              url: "{{ item.value.url }}"
              headers: "{{ item.value.args }}"
              force: yes
              dest: /tmp
           with_dict: "{{ java }}"
-          become: yes
-          become: root   
           when: java_result is failed
           tags: java8  
       
@@ -79,8 +85,6 @@
           args:
             warn: no
           when: java_result is failed
-          become: yes
-          become_user: root
           tags: java8 
 
         - name: Check if maven is installed
@@ -98,7 +102,7 @@
              msg: "Success - Java is installed"
           when:  maven_result is success
           tags: default
-  
+
         - name: Download Maven
           get_url:
              url: "{{ item.value.url }}"
@@ -114,33 +118,23 @@
              dest: /usr/local/
              mode: 0755
              owner: root
-             group: root
-          become: yes
-          become_user: root   
+             group: root  
           when: maven_result is failed
           tags: default
 
           
-       # - name: System-wide environment variables.
-        #    lineinfile:
-        #      dest: /etc/environment
-        #      line: '{{ item }}'
-        #   with_items:
-        #        - 'export http_proxy="http://172.18.10.246:80"'
-        #        - 'export https_proxy="http://172.18.10.246:80"'
-        #        - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-         
-        - name: checking if the file 1 exists
-          stat:      
-              path: /usr/local/apache-maven
-          register: stat_result
-          tags: default
-         
-        - name: moving file 1
+        - name: System-wide environment variables.
+          lineinfile:
+            dest: /etc/environment
+            line: '{{ item }}'
+          with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+          
+        - name: move maven bin to /usr/local
           command: mv  /usr/local/apache-maven-3.6.3   /usr/local/apache-maven
-          when: stat_result.stat.exists == False                    
-          become: yes
-          become_user: root 
+          when: maven_result is failed                  
           tags: default
 
         - name: create maven environment
@@ -148,20 +142,28 @@
             dest: /home/ec2-user/.bashrc
             line: '{{ item }}'
           with_items:
-           - 'export M2_HOME=/usr/local/apache-maven'
-           - 'export M2=$M2_HOME/bin'
-           - 'export PATH=$M2:$PATH'
+            - 'export M2_HOME=/usr/local/apache-maven'
+            - 'export M2=$M2_HOME/bin'
+            - 'export PATH=$M2:$PATH'
           tags: default
+        
+        - name: create m2 directory
+          file: 
+            path: /home/ec2-user/.m2
+            state: directory
 
-        - name:
-          shell: source /home/ec2-user/.bashrc
+        - name: create mvn settings file
+          file: 
+            path: /home/ec2-user/settings.xml
+            state: file
+
+        - name: sbt Installation
+          shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
           args:
-            executable: /bin/bash 
-          become: no
-          register: source_output
+            warn: no 
+            executable: /bin/bash
           tags: default
 
-        - debug: msg="{{source_output}}"  
         - name: Install yum package
           yum:
            name:
@@ -175,132 +177,42 @@
              - cpan
              - unzip
              - zip
-          become: yes
-          become_user: root
-          tags: default
-
-        - name: check git version 
-          command: "git --version"
-          register: git_version
-          tags: default
-
-        - name: Get git binary
-          unarchive:
-             src: "{{ url }}"
-             dest: "{{ temp_dir }}"
-             remote_src: yes
-          changed_when: false
-          register: result     
-          when: git_version is failed
-          tags: default
-
-        - name: Make all git binary
-          make:
-             chdir: "{{ binary_dir }}"
-             target: all
-             params:
-              prefix: "{{ prefix }}"
-          changed_when: false
-          when: git_version is failed  
-          tags: default
-
-        - name: Make install git binary
-          make:
-            chdir: "{{ binary_dir }}"
-            target: install
-            params:
-              prefix: "{{ prefix }}"
-          changed_when: false
-          when: git_version is failed
-          tags: default
-
-        - name: Remove file
-          file:
-            path: "{{ binary_dir }}"
-            state: absent
-          changed_when: false 
-          tags: default
-
-        - name: Add Docker repo
-          get_url:
-            url: https://download.docker.com/linux/centos/docker-ce.repo
-            dest: /etc/yum.repos.d/docer-ce.repo
-          become: yes
-          become_user: root
-          tags: default
-
-        - name: Enable Docker Edge repo
-          ini_file:
-            dest: /etc/yum.repos.d/docer-ce.repo
-            section: 'docker-ce-edge'
-            option: enabled
-            value: '0'
-          become: yes
-          become_user: root
-          tags: default
-
-        - name: Enable Docker Test repo
-          ini_file:
-            dest: /etc/yum.repos.d/docer-ce.repo
-            section: 'docker-ce-test'
-            option: enabled
-            value: '0'
-          become: yes
-          become_user: root
-          tags: default
-
-        - name: Install Docker
-          package:
-           name: docker-ce
-           state: latest
-          become: yes
-          become_user: root 
+             - docker
+             - python3
+             - postgresql-server
+             - sbt
           tags: default
         
-        # - name: Add proxy to docker
-        #   lineinfile:
-        #            dest: /etc/sysconfig/docke
-        #            line: '{{ item }}'
-          #   with_items:
-          #         - 'HTTP_PROXY=http://172.18.10.246:80'
-          #         - 'HTTPS_PROXY=http://proxy.cat.com:80/'
-          #         - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
-          #   tags: default
+        - name: Add proxy to docker
+          lineinfile:
+            dest: /etc/sysconfig/docke
+            line: '{{ item }}'
+          with_items:
+            - 'HTTP_PROXY=http://172.18.10.246:80'
+            - 'HTTPS_PROXY=http://proxy.cat.com:80/'
+            - 'NO_PROXY="localhost, .cat.com, 169.254.169.254"'
+          tags: default
     
-
         - name: Start Docker service
           service:
               name: docker
               state: started
-              enabled: yes
-          become: yes
-          become_user: root      
+              enabled: yes    
           tags: default
 
         - name: Add user ec2-user to docker group
           user:
-              name: ec2-user
-              groups: docker
-              append: yes    
-          become: yes
-          become_user: root
+            name: ec2-user
+            groups: docker
+            append: yes    
           tags: default
 
         - name: Install Docker Compose
           get_url:
              url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
              dest: /usr/local/bin/docker-compose
-             owner: ec2-user
-             mode: 0777  
-          become: yes
-          become_user: root
-          tags: default
-
-        - name: install python
-          yum:
-               name: python3
-          become: yes
-          become_user: root
+             owner: root
+             mode: 0755  
           tags: default
 
         - name: check python version 
@@ -308,33 +220,28 @@
           register: python_result
           tags: default
 
-        - name: Creates directory
+        - name: create python virtual env directory 
           file:
             path: /home/ec2-user/python3
             state: directory  
           tags: default
 
-        - name: install python package
+        - name: install python virtual env
           shell: python3 -m pip install --user virtualenv
           args:
              executable: /bin/bash 
           tags: default         
   
-        - name: install virtual environment
+        - name: install python virtual environment
           command:
             cmd: python3 -m venv /home/ec2-user/python3
-          tags: python 
-          become: yes
-          become_user: root
           tags: default
 
-        - name: NODEJS and NPM Installation
+        - name: nodejs and npm installation
           get_url:
                url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
                dest: /home/ec2-user/install.sh
-               mode: 0777  
-          become: yes
-          become_user: root 
+               mode: 0755   
           tags: default
 
         - name: run shell script
@@ -359,29 +266,16 @@
             msg: "{{version_message}}"  
           tags: default
 
-        - name: PSQL Installation
-          yum:
-            name: postgresql-server
-          become: yes
-          become_user: root 
-          tags: default
-
-        - name: Sdk Installation
+        - name: sdkman installation script download
           get_url: 
-              url: https://get.sdkman.io 
-              dest: /home/ec2-user/run.sh
-              mode: 0755
-          become: yes 
-          become_user: root 
+            url: https://get.sdkman.io 
+            dest: /home/ec2-user/run.sh
+            mode: 0755
           tags: default
 
-        - name : 
+        - name : run sdkman installation script
           command:
-              cmd: "bash /home/ec2-user/run.sh"  
-          register: output
-          tags: default
-
-        - debug: var=output
+            cmd: "bash /home/ec2-user/run.sh"  
           tags: default
 
         - name: source sdk and Install the java 11.0.2-open
@@ -391,25 +285,11 @@
           tags: sdk  
           tags: java11 
 
-        - name: SBT Installation
-          shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
-          args:
-            warn: no 
-            executable: /bin/bash
-          tags: default
-
-        - name:  Install Sbt
-          yum:
-            name: sbt
-          become: yes
-          become_user: root
-          tags: default
-
-        # - name: add  Sbt environtment 
-        #   lineinfile:
-        #          dest:  /etc/environment
-        #          line: '{{item}}'
-        #   with_items:
-        #        -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
-        #   tags: default     
+        - name: add  Sbt environtment 
+          lineinfile:
+            dest:  /etc/environment
+            line: '{{item}}'
+          with_items:
+            -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
+          tags: default     
   
