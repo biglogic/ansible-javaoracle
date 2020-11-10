@@ -7,8 +7,6 @@ maven:
    maven3:
       url: http://mirror.cogentco.com/pub/apache/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz
 
-installation: [ git,docker]  
-
 version: 2.19.1
 prefix: /usr/local
 temp_dir: /tmp
