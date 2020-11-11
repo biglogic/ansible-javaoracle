@@ -64,16 +64,6 @@
           register: java_result
           ignore_errors: True
           tags: default
-
-        - debug:
-            msg: "Failed - Java is not installed"
-          when: java_result is failed
-          tags: default 
-
-        - debug:
-            msg: "Success - Java is installed"
-          when:  java_result is success
-          tags: default
                  
         - name: download java8 rpm
           get_url:
@@ -99,16 +89,6 @@
             mvn --version
           register: maven_result
           ignore_errors: True
-          tags: default
-
-        - debug:
-             msg: "Failed - maven is not installed"
-          when: maven_result is failed
-          tags: default
-
-        - debug:
-             msg: "Success - Java is installed"
-          when:  maven_result is success
           tags: default
 
         - name: Download Maven
