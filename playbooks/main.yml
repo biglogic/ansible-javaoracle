@@ -266,13 +266,17 @@
           tags: default
        
         - name: nvm install 12.7.0
-          shell: source /home/ec2-user/.bashrc; nvm install 12.7.0 
+          shell: |
+            source ~/.bashrc 
+            nvm install 12.7.0 
           args:
             executable: /bin/bash
           tags: default
 
         - name: check version
-          command: "source /home/ec2-user/.bashrc; npm -v && node -v" 
+          shell: |
+            source ~/.bashrc
+            npm -v && node -v 
           register: version_message
           ignore_errors: yes
           tags: default
@@ -290,13 +294,15 @@
           tags: java11
 
         - name : run sdkman installation script
-          command:
-            cmd: "bash /home/ec2-user/run.sh"  
+          shell: bash /home/ec2-user/run.sh  
           when: java_result is failed
           tags: java11
 
         - name: source sdk and Install the java 11.0.2-open
-          shell: source /home/ec2-user/.bashrc; sdk install java 11.0.2-open; sdk use java 11.0.2-open
+          shell: |
+            source ~/.bashrc
+            sdk install java 11.0.2-open
+            sdk use java 11.0.2-open
           args:
             executable: /bin/bash
           when: java_result is failed
