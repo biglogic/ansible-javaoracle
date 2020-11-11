@@ -40,21 +40,21 @@
             url:  https://vstsagentpackage.azureedge.net/agent/2.173.0/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             force: yes
-          when: vsts_dir.stat.exists
+          when: not vsts_dir.stat.exists
           tags: default 
         
         - name: create directory vsts agent
           file:
             path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
             state: directory
-          when: vsts_dir.stat.exists
+          when: not vsts_dir.stat.exists
           tags: default      
         
         - name : Unpack the downloaded vsts agent
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
-          when: vsts_dir.stat.exists
+          when: not vsts_dir.stat.exists
           tags: default
            
         - name: Check if java is installed
@@ -140,11 +140,13 @@
           file: 
             path: /home/ec2-user/.m2
             state: directory
+          tags: default
 
         - name: create mvn settings file
           file: 
             path: /home/ec2-user/settings.xml
             state: file
+          tags: default
 
         - name: sbt Installation
           shell: curl https://bintray.com/sbt/rpm/rpm | sudo tee /etc/yum.repos.d/bintray-sbt-rpm.repo
