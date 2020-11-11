@@ -144,7 +144,7 @@
 
         - name: create mvn settings file
           file: 
-            path: /home/ec2-user/settings.xml
+            path: /home/ec2-user/.m2/settings.xml
             state: file
           tags: default
 
