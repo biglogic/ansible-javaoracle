@@ -7,15 +7,8 @@
         ansible_python_interpreter: /usr/bin/python2   
       vars_files:
         - ../groupvars/var.yml
-    
-      tasks:
-        - name:
-          shell: source /home/ec2-user/.bashrc
-          args:
-            executable: /bin/bash 
-          register: source_output
-          tags: default
-
+      
+      task:
         # - name: add proxy to ec2-user
         #   lineinfile:
         #     dest: /home/ec2-user/.bashrc
@@ -35,6 +28,7 @@
         #     - 'export https_proxy="http://172.18.10.246:80"'
         #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
         #   tags: default
+
         - name: checking vsts exits or not
           stat:      
             path: /home/ec2-user/vsts-agent-linux-x64-2.173.0
@@ -64,7 +58,9 @@
           tags: default
            
         - name: Check if java is installed
-          command: java -version
+          shell: |
+            source ~/.bashrc
+            java -version
           register: java_result
           ignore_errors: True
           tags: default
@@ -98,7 +94,9 @@
           tags: java8 
 
         - name: Check if maven is installed
-          command: mvn --version
+          shell: |
+            source ~/.bashrc
+            mvn --version
           register: maven_result
           ignore_errors: True
           tags: default
