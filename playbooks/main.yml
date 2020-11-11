@@ -314,5 +314,4 @@
         #     line: '{{item}}'
         #   with_items:
         #     -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"'       
-        #   tags: default     
-  
+        #   tags: default
