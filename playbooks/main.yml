@@ -302,34 +302,34 @@
           become_user: root        
           tags: java11
 
-        - name: Check if aws cli is installed
-          shell: |
-            source ~/.bashrc
-            aws --version
-          register: awscli_result
-          ignore_errors: True
-          tags: default
+        # - name: Check if aws cli is installed
+        #   shell: |
+        #     source ~/.bashrc
+        #     aws --version
+        #   register: awscli_result
+        #   ignore_errors: True
+        #   tags: default
 
         - name: Download the aws cli
           get_url:
             url:  https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
             dest: /tmp/awscliv2.zip
             force: yes
-          when: awscli_result is failed
+          # when: awscli_result is failed
           tags: default
 
         - name: create directory aws cli temp agent
           file:
             path: /tmp/awscliv2
             state: directory
-          when: awscli_result is failed
+          # when: awscli_result is failed
           tags: default  
 
         - name : unpack the downloaded aws cli
           unarchive:
             src: /tmp/awscliv2.zip
             dest: /tmp/awscliv2
-          when: awscli_result is failed
+          # when: awscli_result is failed
           tags: default
 
         - name: install aws cli 
@@ -337,7 +337,7 @@
           become_user: root
           ignore_errors: True
           tags: default
-          when: awscli_result is failed
+          # when: awscli_result is failed
 
         - name: check aws cli version
           shell: aws --version
