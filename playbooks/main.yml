@@ -33,7 +33,7 @@
 
         - name: checking vsts exits or not
           stat:      
-            path: /home/ec2-user/vsts-agent-linux-x64-2.173.0
+            path: /home/ec2-user/Agent01
           register: vsts_dir
           tags: default
 
@@ -47,15 +47,25 @@
         
         - name: create directory vsts agent
           file:
-            path: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+            path: /home/ec2-user/"{{ item }}"
             state: directory
+          with_items:
+            - Agent01
+            - Agent02
           when: not vsts_dir.stat.exists
           tags: default      
         
-        - name : Unpack the downloaded vsts agent
+        - name : Unpack the downloaded vsts agent01
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
-            dest: /home/ec2-user/vsts-agent-linux-x64-2.173.0 
+            dest: /home/ec2-user/Agent01
+          when: not vsts_dir.stat.exists
+          tags: default
+
+        - name : Unpack the downloaded vsts agent02
+          unarchive:
+            src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
+            dest: /home/ec2-user/Agent02
           when: not vsts_dir.stat.exists
           tags: default
            
@@ -111,17 +121,6 @@
              group: root  
           when: maven_result is failed
           become_user: root
-          tags: default
-     
-        - name: System-wide environment variables.
-          lineinfile:
-            dest: /etc/environment
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          become_user: root 
           tags: default
 
         - name: move maven bin to /usr/local
@@ -299,6 +298,35 @@
             dest:  /etc/environment
             line: '{{item}}'
           with_items:
-            -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80"' 
+            -  'export SBT_OPTS="-Dhttp.proxyHost=172.18.10.246 -Dhttp.proxyPort=80 -Dhttps.proxyHost=172.18.10.246 -Dhttps.proxyPort=80 -Xmx4096s"' 
           become_user: root        
           tags: java11
+
+        - name: Download the aws cli
+          get_url:
+            url:  https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+            dest: /tmp/awscliv2.zip
+            force: yes
+          tags: default
+
+        - name : Unpack the downloaded aws cli
+          unarchive:
+            src: /tmp/awscliv2.zip
+            dest: /tmp/awscliv2
+          tags: default
+
+        - name: Install aws cli 
+          shell: /tmp/awscliv2/aws/install
+          become_user: root
+          ignore_errors: True
+          tags: default
+
+        - name: check aws cli version
+          shell: aws --version
+          register: awscli_version_message
+          ignore_errors: yes
+          tags: default
+
+        - debug:
+            msg: "{{awscli_version_message}}"  
+          tags: default
