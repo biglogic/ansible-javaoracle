@@ -76,6 +76,29 @@
           register: java_result
           ignore_errors: True
           tags: default
+
+        - name: sdkman installation script download
+          get_url: 
+            url: https://get.sdkman.io 
+            dest: /home/ec2-user/run.sh
+            mode: 0755
+          when: java_result is failed
+          tags: java11
+
+        - name : run sdkman installation script
+          shell: bash /home/ec2-user/run.sh  
+          when: java_result is failed
+          tags: java11
+
+        - name: source sdk and Install the java 11.0.2-open
+          shell: |
+            source ~/.bashrc
+            sdk install java 11.0.2-open
+            sdk use java 11.0.2-open
+          args:
+            executable: /bin/bash
+          when: java_result is failed
+          tags: java11 
                  
         - name: download java8 rpm
           get_url:
@@ -269,29 +292,6 @@
         - debug:
             msg: "{{version_message}}"  
           tags: default
-
-        - name: sdkman installation script download
-          get_url: 
-            url: https://get.sdkman.io 
-            dest: /home/ec2-user/run.sh
-            mode: 0755
-          when: java_result is failed
-          tags: java11
-
-        - name : run sdkman installation script
-          shell: bash /home/ec2-user/run.sh  
-          when: java_result is failed
-          tags: java11
-
-        - name: source sdk and Install the java 11.0.2-open
-          shell: |
-            source ~/.bashrc
-            sdk install java 11.0.2-open
-            sdk use java 11.0.2-open
-          args:
-            executable: /bin/bash
-          when: java_result is failed
-          tags: java11 
 
         - name: add  sbt environtment 
           lineinfile:
