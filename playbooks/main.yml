@@ -304,7 +304,7 @@
 
         - name: checking awscli 2 exits or not
           stat:      
-            path: /opt/awscliv2
+            path: /usr/local/aws-cli/v2
           register: awscli_cli
           tags: default
 
@@ -318,7 +318,7 @@
 
         - name: create directory aws cli temp agent
           file:
-            path: /opt/awscliv2
+            path: /tmp/awscliv2
             state: directory
           become_user: root
           tags: default  
@@ -326,13 +326,13 @@
         - name : unpack the downloaded aws cli
           unarchive:
             src: /tmp/awscliv2.zip
-            dest: /opt/awscliv2
+            dest: /tmp/awscliv2
           when: not awscli_cli.stat.exists
           become_user: root
           tags: default
 
         - name: install aws cli 
-          shell: /opt/awscliv2/aws/install
+          shell: /tmp/awscliv2/aws/install
           become_user: root
           ignore_errors: True
           tags: default
