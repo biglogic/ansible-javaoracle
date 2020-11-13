@@ -347,3 +347,17 @@
         - debug:
             msg: "{{awscli_version_message}}"  
           tags: default
+
+        - name: clean all temp files
+          file:
+            state: absent
+            path: {{ item }}
+          with_items:
+            - /home/ec2-user/install.sh
+            - /home/ec2-user/run.sh
+            - /tmp/apache-maven-3.6.3-bin.tar.gz  
+            - /tmp/awscliv2
+            - /tmp/awscliv2.zip
+            - /tmp/jdk-8u141-linux-x64.rpm  
+            - /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
+          become_user: root
