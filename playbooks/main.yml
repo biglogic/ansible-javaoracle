@@ -10,26 +10,26 @@
       
       tasks:
 
-        - name: add proxy to ec2-user
-          lineinfile:
-            dest: /home/ec2-user/.bashrc
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'  
-          tags: default
+        # - name: add proxy to ec2-user
+        #   lineinfile:
+        #     dest: /home/ec2-user/.bashrc
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'  
+        #   tags: default
              
-        - name: add proxy to system environment file
-          lineinfile:
-            dest: /etc/environment
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          become_user: root 
-          tags: default
+        # - name: add proxy to system environment file
+        #   lineinfile:
+        #     dest: /etc/environment
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+        #   become_user: root 
+        #   tags: default
 
         - name: checking vsts exits or not
           stat:      
