@@ -304,7 +304,7 @@
 
         - name: checking vsts exits or not
           stat:      
-            path: /home/ec2-user/Agent01
+            path: /opt/awscliv2
           register: awscli_cli
           tags: default
 
@@ -326,13 +326,13 @@
         - name : unpack the downloaded aws cli
           unarchive:
             src: /tmp/awscliv2.zip
-            dest: /opy/awscliv2
+            dest: /opt/awscliv2
           when: not awscli_cli.stat.exists
           become_user: root
           tags: default
 
         - name: install aws cli 
-          shell: /tmp/awscliv2/aws/install
+          shell: /opt/awscliv2/aws/install
           become_user: root
           ignore_errors: True
           tags: default
