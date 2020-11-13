@@ -10,26 +10,26 @@
       
       tasks:
 
-        # - name: add proxy to ec2-user
-        #   lineinfile:
-        #     dest: /home/ec2-user/.bashrc
-        #     line: '{{ item }}'
-        #   with_items:
-        #     - 'export http_proxy="http://172.18.10.246:80"'
-        #     - 'export https_proxy="http://172.18.10.246:80"'
-        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'  
-        #   tags: default
+        - name: add proxy to ec2-user
+          lineinfile:
+            dest: /home/ec2-user/.bashrc
+            line: '{{ item }}'
+          with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'  
+          tags: default
              
-        # - name: add proxy to system environment file
-        #   lineinfile:
-        #     dest: /etc/environment
-        #     line: '{{ item }}'
-        #   with_items:
-        #     - 'export http_proxy="http://172.18.10.246:80"'
-        #     - 'export https_proxy="http://172.18.10.246:80"'
-        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-        #   become_user: root 
-        #   tags: default
+        - name: add proxy to system environment file
+          lineinfile:
+            dest: /etc/environment
+            line: '{{ item }}'
+          with_items:
+            - 'export http_proxy="http://172.18.10.246:80"'
+            - 'export https_proxy="http://172.18.10.246:80"'
+            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+          become_user: root 
+          tags: default
 
         - name: checking vsts exits or not
           stat:      
@@ -102,10 +102,10 @@
                  
         - name: download java8 rpm
           get_url:
-             url: "{{ item.value.url }}"
-             headers: "{{ item.value.args }}"
-             force: yes
-             dest: /tmp
+            url: "{{ item.value.url }}"
+            headers: "{{ item.value.args }}"
+            force: yes
+            dest: /tmp
           with_dict: "{{ java }}"
           when: java_result is failed
           tags: java8  
@@ -215,9 +215,9 @@
     
         - name: start Docker service
           service:
-              name: docker
-              state: started
-              enabled: yes 
+            name: docker
+            state: started
+            enabled: yes 
           become_user: root   
           tags: default
 
@@ -231,10 +231,10 @@
 
         - name: install Docker Compose
           get_url:
-             url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
-             dest: /usr/local/bin/docker-compose
-             owner: root
-             mode: 0755  
+            url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
+            dest: /usr/local/bin/docker-compose
+            owner: root
+            mode: 0755  
           become_user: root
           tags: default
 
@@ -260,17 +260,27 @@
             cmd: python3 -m venv /home/ec2-user/python3
           tags: default
 
+        - name: check npm and node version
+          shell: |
+            source ~/.bashrc
+            npm -v && node -v 
+          register: version_message
+          ignore_errors: yes
+          tags: default
+
         - name: nodejs and npm installation
           get_url:
-               url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
-               dest: /home/ec2-user/install.sh
-               mode: 0755   
+              url: https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh
+              dest: /home/ec2-user/install.sh
+              mode: 0755  
+          when: version_message is failed 
           tags: default
 
         - name: run shell script
           shell: bash /home/ec2-user/install.sh
           args:
             executable: /bin/bash
+          when: version_message is failed 
           tags: default
        
         - name: nvm install 12.7.0
@@ -280,18 +290,7 @@
           args:
             executable: /bin/bash
           tags: default
-
-        - name: check npm and node version
-          shell: |
-            source ~/.bashrc
-            npm -v && node -v 
-          register: version_message
-          ignore_errors: yes
-          tags: default
-
-        - debug:
-            msg: "{{version_message}}"  
-          tags: default
+          when: version_message is failed 
 
         - name: add  sbt environtment 
           lineinfile:
@@ -321,6 +320,7 @@
             path: /tmp/awscliv2
             state: directory
           become_user: root
+          when: not awscli_cli.stat.exists
           tags: default  
 
         - name : unpack the downloaded aws cli
@@ -337,16 +337,6 @@
           ignore_errors: True
           tags: default
           when: not awscli_cli.stat.exists
-
-        - name: check aws cli version
-          shell: aws --version
-          register: awscli_version_message
-          ignore_errors: yes
-          tags: default
-
-        - debug:
-            msg: "{{awscli_version_message}}"  
-          tags: default
 
         - name: clean all temp files
           file:
