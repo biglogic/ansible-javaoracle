@@ -9,27 +9,27 @@
         - ../groupvars/var.yml
       
       tasks:
-        - name: add proxy to ec2-user
-          lineinfile:
-            dest: /home/ec2-user/.bashrc
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          become_user: root   
-          tags: default
+
+        # - name: add proxy to ec2-user
+        #   lineinfile:
+        #     dest: /home/ec2-user/.bashrc
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'  
+        #   tags: default
              
-        - name: add proxy to system environment file
-          lineinfile:
-            dest: /etc/environment
-            line: '{{ item }}'
-          with_items:
-            - 'export http_proxy="http://172.18.10.246:80"'
-            - 'export https_proxy="http://172.18.10.246:80"'
-            - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
-          become_user: root 
-          tags: default
+        # - name: add proxy to system environment file
+        #   lineinfile:
+        #     dest: /etc/environment
+        #     line: '{{ item }}'
+        #   with_items:
+        #     - 'export http_proxy="http://172.18.10.246:80"'
+        #     - 'export https_proxy="http://172.18.10.246:80"'
+        #     - 'export no_proxy="localhost, .cat.com, 169.254.169.254"'
+        #   become_user: root 
+        #   tags: default
 
         - name: checking vsts exits or not
           stat:      
@@ -55,21 +55,21 @@
           when: not vsts_dir.stat.exists
           tags: default      
         
-        - name : Unpack the downloaded vsts agent01
+        - name : unpack the downloaded vsts agent01
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /home/ec2-user/Agent01
           when: not vsts_dir.stat.exists
           tags: default
 
-        - name : Unpack the downloaded vsts agent02
+        - name : unpack the downloaded vsts agent02
           unarchive:
             src: /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
             dest: /home/ec2-user/Agent02
           when: not vsts_dir.stat.exists
           tags: default
            
-        - name: Check if java is installed
+        - name: check if java is installed
           shell: |
             source ~/.bashrc
             java -version
@@ -87,7 +87,7 @@
           when: java_result is failed
           tags: java8  
       
-        - name: Install package java8
+        - name: install package java8
           command: rpm -i /tmp/jdk-8u141-linux-x64.rpm
           args:
             warn: no
@@ -95,7 +95,7 @@
           become_user: root
           tags: java8 
 
-        - name: Check if maven is installed
+        - name: check if maven is installed
           shell: |
             source ~/.bashrc
             mvn --version
@@ -103,7 +103,7 @@
           ignore_errors: True
           tags: default
 
-        - name: Download Maven
+        - name: download Maven
           get_url:
              url: "{{ item.value.url }}"
              force: yes
@@ -112,7 +112,7 @@
           when: maven_result is failed
           tags: default
 
-        - name: Unarchive Maven
+        - name: unarchive Maven
           unarchive:
              src: /tmp/apache-maven-3.6.3-bin.tar.gz
              dest: /usr/local/
@@ -179,7 +179,7 @@
           become_user: root
           tags: default
         
-        - name: Add proxy to docker
+        - name: add proxy to docker
           lineinfile:
             dest: /etc/sysconfig/docker
             line: '{{ item }}'
@@ -190,7 +190,7 @@
           become_user: root
           tags: default
     
-        - name: Start Docker service
+        - name: start Docker service
           service:
               name: docker
               state: started
@@ -198,7 +198,7 @@
           become_user: root   
           tags: default
 
-        - name: Add user ec2-user to docker group
+        - name: add user ec2-user to docker group
           user:
             name: ec2-user
             groups: docker
@@ -206,7 +206,7 @@
           become_user: root
           tags: default
 
-        - name: Install Docker Compose
+        - name: install Docker Compose
           get_url:
              url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64"
              dest: /usr/local/bin/docker-compose
@@ -325,14 +325,14 @@
           when: awscli_result is failed
           tags: default  
 
-        - name : Unpack the downloaded aws cli
+        - name : unpack the downloaded aws cli
           unarchive:
             src: /tmp/awscliv2.zip
             dest: /tmp/awscliv2
           when: awscli_result is failed
           tags: default
 
-        - name: Install aws cli 
+        - name: install aws cli 
           shell: /tmp/awscliv2/aws/install
           become_user: root
           ignore_errors: True
