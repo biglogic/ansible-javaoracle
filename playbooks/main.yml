@@ -361,3 +361,4 @@
             - /tmp/jdk-8u141-linux-x64.rpm  
             - /tmp/vsts-agent-linux-x64-2.173.0.tar.gz
           become_user: root
+          tags: default
